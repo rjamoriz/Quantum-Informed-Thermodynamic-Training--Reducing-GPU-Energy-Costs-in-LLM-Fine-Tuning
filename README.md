@@ -164,7 +164,7 @@ Each weight $\theta_i$ is modeled as a stochastic variable:
 
 ```math
 A_{ij} = \begin{cases}
-\frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j'\leq i}\exp(q_i \cdot k_{j'} / \sqrt{d_k})} & \text{if } j \leq i \\
+\frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j' \leq i}\exp(q_i \cdot k_{j'} / \sqrt{d_k})} & \text{if } j \leq i \\
 0 & \text{if } j > i
 \end{cases}
 ```
@@ -305,7 +305,7 @@ Higher $\eta$ = more efficient training.
 **Cost Hamiltonian (Attention Weights):**
 
 ```math
-H_C = \sum_{i=1}^{n} h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j
+H_C = \sum_{i=1}^{n} h_i Z_i + \sum_{i < j} J_{ij} Z_i Z_j
 ```
 
 **Optimization:**
@@ -325,13 +325,13 @@ H_C = \sum_{i=1}^{n} h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j
 **Autoregressive Factorization:**
 
 ```math
-P(x_{1:T}) = \prod_{t=1}^{T} P_\theta(x_t | x_{<t})
+P(x_{1:T}) = \prod_{t=1}^{T} P_\theta(x_t \mid x_{< t})
 ```
 
 **Cross-Entropy Loss:**
 
 ```math
-\mathcal{L} = -\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(x_t | x_{<t})
+\mathcal{L} = -\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(x_t \mid x_{< t})
 ```
 
 **Perplexity:**
