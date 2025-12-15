@@ -83,9 +83,9 @@ Based on the Extropic paper ([arXiv:2510.23972](https://arxiv.org/abs/2510.23972
 
 Instead of minimizing loss alone, we minimize the **Helmholtz free energy**:
 
-$$
-\boxed{F(\theta) = \mathcal{L}(\theta) - T \cdot S(\theta) + \lambda D_{KL}[q(\theta)||p(\theta)]}
-$$
+```math
+F(\theta) = \mathcal{L}(\theta) - T \cdot S(\theta) + \lambda D_{KL}[q(\theta)||p(\theta)]
+```
 
 where:
 - $\mathcal{L}(\theta)$: Standard loss function (cross-entropy)
@@ -95,9 +95,14 @@ where:
 
 **Physical Interpretation:**
 
-$$
-\underbrace{F(\theta)}_{\text{Free Energy}} = \underbrace{\mathcal{L}(\theta)}_{\text{Internal Energy}} - \underbrace{T \cdot S(\theta)}_{\text{Entropic Force}}
-$$
+```math
+F(\theta) = \mathcal{L}(\theta) - T \cdot S(\theta)
+```
+
+Where:
+- $F(\theta)$ = Free Energy
+- $\mathcal{L}(\theta)$ = Internal Energy (Loss)
+- $T \cdot S(\theta)$ = Entropic Force
 
 ---
 
@@ -105,21 +110,21 @@ $$
 
 **Differential Entropy** (Gaussian parameter distribution):
 
-$$
+```math
 S(\theta) = \frac{1}{2}\sum_{i=1}^{d} \left(1 + \log(2\pi\sigma_i^2)\right)
-$$
+```
 
 **Shannon Entropy** (attention distributions):
 
-$$
+```math
 H(P) = -\sum_{i=1}^{n} p_i \log p_i
-$$
+```
 
 **KL Divergence** (regularization to standard normal prior):
 
-$$
+```math
 D_{KL}[q||p] = \frac{1}{2}\sum_{i=1}^{d}\left(\mu_i^2 + \sigma_i^2 - \log(\sigma_i^2) - 1\right)
-$$
+```
 
 ---
 
@@ -129,21 +134,21 @@ $$
 
 Each weight $\theta_i$ is modeled as a stochastic variable:
 
-$$
+```math
 \theta_i \sim \mathcal{N}(\mu_i, \sigma_i^2)
-$$
+```
 
 **Sampling:**
 
-$$
+```math
 \theta_i^{(s)} = \mu_i + \sigma_i \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, 1)
-$$
+```
 
 **Free Energy Gradient:**
 
-$$
+```math
 \nabla_{\mu,\sigma} F = \nabla_{\mu,\sigma}\mathcal{L} - T \cdot \nabla_{\mu,\sigma}S + \lambda \nabla_{\mu,\sigma}D_{KL}
-$$
+```
 
 ---
 
@@ -151,62 +156,62 @@ $$
 
 **Standard Attention:**
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 **Causal Masking:**
 
-$$
+```math
 A_{ij} = \begin{cases}
 \frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j'\leq i}\exp(q_i \cdot k_{j'} / \sqrt{d_k})} & \text{if } j \leq i \\
 0 & \text{if } j > i
 \end{cases}
-$$
+```
 
 **Attention Entropy:**
 
-$$
+```math
 H(A_i) = -\sum_{j} A_{ij} \log(A_{ij})
-$$
+```
 
 - **High entropy** ($H \to \log T$): Uniform attention (uncertain)
 - **Low entropy** ($H \to 0$): Focused attention (confident)
 
 **Classical SGD (Baseline):**
 
-$$
+```math
 \theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}(\theta_t)
-$$
+```
 
 **TSU Update Rules:**
 
 **Step 1 - Sample:**
 
-$$
+```math
 \theta^{(s)} \sim q(\theta) = \mathcal{N}(\mu, \text{diag}(\sigma^2))
-$$
+```
 
 **Step 2 - Compute Free Energy:**
 
-$$
+```math
 F(\mu,\sigma) = \mathbb{E}_{\theta \sim q}[\mathcal{L}(\theta)] - T \cdot S(q) + \lambda \cdot D_{KL}[q||p_0]
-$$
+```
 
 **Step 3 - Update Distribution:**
 
-$$
+```math
 \begin{aligned}
 \mu_{t+1} &= \mu_t - \eta_\mu \nabla_\mu F \\
 \sigma_{t+1} &= \sigma_t - \eta_\sigma \nabla_\sigma F
 \end{aligned}
-$$
+```
 
 **Entropy Gradient:**
 
-$$
+```math
 \nabla_{\sigma_i} S = \frac{1}{\sigma_i}
-$$
+```
 
 This creates an **"entropic force"** pushing towards exploration.
 
@@ -214,9 +219,9 @@ This creates an **"entropic force"** pushing towards exploration.
 
 ### **6. Temperature Annealing**
 
-$$
+```math
 T(t) = T_0 \cdot \left(\frac{T_{\text{final}}}{T_0}\right)^{t/T_{\text{max}}}
-$$
+```
 
 **Strategy:** Start hot (explore) → End cold (exploit)
 
@@ -229,15 +234,15 @@ $$
 
 From Extropic's framework:
 
-$$
+```math
 P_\theta(x) \propto \exp\left(-\frac{E(x)}{k_B T}\right)
-$$
+```
 
 **Denoising Objective:**
 
-$$
+```math
 \mathcal{L}_{DTM}(\theta) = \mathbb{E}_{x_0 \sim q(x_0)} \mathbb{E}_{t,\epsilon} \left[\|\epsilon - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon, t)\|^2\right]
-$$
+```
 
 where:
 - $\epsilon \sim \mathcal{N}(0, I)$: Noise
@@ -248,18 +253,18 @@ where:
 
 ### **8. Adaptive Correlation Penalty (ACP)**
 
-$$
+```math
 \mathcal{L}_{ACP} = \mathcal{L}(\theta) + \lambda_t \cdot \text{Corr}(\nabla_\theta \mathcal{L}, \xi_t)
-$$
+```
 
 **Adaptive Schedule:**
 
-$$
+```math
 \lambda_t = \begin{cases}
 \lambda_{\text{max}} & \text{if } \|\nabla_\theta \mathcal{L}\| < \tau \\
 \lambda_{\text{max}} \cdot \exp(-\alpha \cdot (\|\nabla_\theta \mathcal{L}\| - \tau)) & \text{otherwise}
 \end{cases}
-$$
+```
 
 ---
 
@@ -267,9 +272,9 @@ $$
 
 **Total Energy:**
 
-$$
+```math
 E_{\text{total}} = \int_{0}^{T_{\text{train}}} P(t) \, dt \approx \sum_{i=1}^{N_{\text{steps}}} P_i \cdot \Delta t_i
-$$
+```
 
 where:
 - $P(t)$: Instantaneous power (Watts) measured via NVML
@@ -277,9 +282,9 @@ where:
 
 **Energy Efficiency Metric:**
 
-$$
+```math
 \eta = \frac{\text{Loss Reduction}}{\text{Energy Consumed}} = \frac{\mathcal{L}_{\text{initial}} - \mathcal{L}_{\text{final}}}{E_{\text{total}}}
-$$
+```
 
 Higher $\eta$ = more efficient training.
 
@@ -289,9 +294,9 @@ Higher $\eta$ = more efficient training.
 
 **Ansatz State:**
 
-$$
+```math
 |\psi(\vec{\gamma}, \vec{\beta})\rangle = \prod_{p=1}^{P} U_M(H_M, \beta_p) U_P(H_C, \gamma_p) |+\rangle^{\otimes n}
-$$
+```
 
 **Unitaries:**
 - $U_P(H_C, \gamma) = e^{-i\gamma H_C}$: Problem unitary
@@ -299,15 +304,15 @@ $$
 
 **Cost Hamiltonian (Attention Weights):**
 
-$$
+```math
 H_C = \sum_{i=1}^{n} h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j
-$$
+```
 
 **Optimization:**
 
-$$
+```math
 (\gamma^*, \beta^*) = \arg\min_{\gamma,\beta} \langle \psi(\gamma, \beta) | H_C | \psi(\gamma, \beta) \rangle
-$$
+```
 
 **Complexity:**
 - Classical: $O(2^n)$
@@ -319,21 +324,21 @@ $$
 
 **Autoregressive Factorization:**
 
-$$
+```math
 P(x_{1:T}) = \prod_{t=1}^{T} P_\theta(x_t | x_{<t})
-$$
+```
 
 **Cross-Entropy Loss:**
 
-$$
+```math
 \mathcal{L} = -\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(x_t | x_{<t})
-$$
+```
 
 **Perplexity:**
 
-$$
+```math
 \text{PPL} = \exp(\mathcal{L})
-$$
+```
 
 Lower perplexity = better model.
 
@@ -343,15 +348,15 @@ Lower perplexity = better model.
 
 **Entropy Evolution:**
 
-$$
+```math
 \frac{dS}{dt} = -\nabla_\sigma S \cdot \frac{d\sigma}{dt}
-$$
+```
 
 **Fluctuation-Dissipation Theorem:**
 
-$$
+```math
 \langle (\Delta \theta)^2 \rangle = 2T \cdot D \cdot \Delta t
-$$
+```
 
 where $D$ is diffusion coefficient, connecting temperature to parameter fluctuations.
 
