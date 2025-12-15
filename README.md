@@ -83,16 +83,21 @@ Based on the Extropic paper ([arXiv:2510.23972](https://arxiv.org/abs/2510.23972
 
 Instead of minimizing loss alone, we minimize the **Helmholtz free energy**:
 
-$$\boxed{F(\theta) = \mathcal{L}(\theta) - T \cdot S(\theta) + \lambda D_{KL}[q(\theta)||p(\theta)]}$$
+```
+F(θ) = L(θ) - T·S(θ) + λ·D_KL[q(θ)||p(θ)]
+```
 
 where:
-- $\mathcal{L}(\theta)$: Standard loss function (cross-entropy)
-- $T$: Temperature parameter (exploration control)
-- $S(\theta)$: Entropy of parameter distribution
-- $D_{KL}$: KL divergence regularization
+- `L(θ)`: Standard loss function (cross-entropy)
+- `T`: Temperature parameter (exploration control)
+- `S(θ)`: Entropy of parameter distribution
+- `D_KL`: KL divergence regularization
 
 **Physical Interpretation:**
-$$\underbrace{F(\theta)}_{\text{Free Energy}} = \underbrace{\mathcal{L}(\theta)}_{\text{Internal Energy}} - \underbrace{T \cdot S(\theta)}_{\text{Entropic Force}}$$
+```
+F(θ)           =    L(θ)              -    T·S(θ)
+Free Energy    =    Internal Energy   -    Entropic Force
+```
 
 ---
 
@@ -100,15 +105,21 @@ $$\underbrace{F(\theta)}_{\text{Free Energy}} = \underbrace{\mathcal{L}(\theta)}
 
 **Differential Entropy** (Gaussian parameter distribution):
 
-$$S(\theta) = \frac{1}{2}\sum_{i=1}^{d} \left(1 + \log(2\pi\sigma_i^2)\right)$$
+```
+S(θ) = (1/2) Σ(1 + log(2πσᵢ²))
+```
 
 **Shannon Entropy** (attention distributions):
 
-$$H(P) = -\sum_{i=1}^{n} p_i \log p_i$$
+```
+H(P) = -Σ pᵢ log(pᵢ)
+```
 
 **KL Divergence** (regularization to standard normal prior):
 
-$$D_{KL}[q||p] = \frac{1}{2}\sum_{i=1}^{d}\left(\mu_i^2 + \sigma_i^2 - \log(\sigma_i^2) - 1\right)$$
+```
+D_KL[q||p] = (1/2) Σ(μᵢ² + σᵢ² - log(σᵢ²) - 1)
+```
 
 ---
 
@@ -116,17 +127,23 @@ $$D_{KL}[q||p] = \frac{1}{2}\sum_{i=1}^{d}\left(\mu_i^2 + \sigma_i^2 - \log(\sig
 
 **Parameter Distribution:**
 
-Each weight $\theta_i$ is modeled as a stochastic variable:
+Each weight `θᵢ` is modeled as a stochastic variable:
 
-$$\theta_i \sim \mathcal{N}(\mu_i, \sigma_i^2)$$
+```
+θᵢ ~ N(μᵢ, σᵢ²)
+```
 
 **Sampling:**
 
-$$\theta_i^{(s)} = \mu_i + \sigma_i \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, 1)$$
+```
+θᵢ⁽ˢ⁾ = μᵢ + σᵢ·ε,  where ε ~ N(0,1)
+```
 
 **Free Energy Gradient:**
 
-$$\nabla_{\mu,\sigma} F = \nabla_{\mu,\sigma}\mathcal{L} - T \cdot \nabla_{\mu,\sigma}S + \lambda \nabla_{\mu,\sigma}D_{KL}$$
+```
+∇μ,σ F = ∇μ,σ L - T·∇μ,σ S + λ·∇μ,σ D_KL
+```
 
 ---
 
@@ -134,21 +151,25 @@ $$\nabla_{\mu,\sigma} F = \nabla_{\mu,\sigma}\mathcal{L} - T \cdot \nabla_{\mu,\
 
 **Standard Attention:**
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+```
+Attention(Q,K,V) = softmax(QKᵀ/√dₖ)·V
+```
 
 **Causal Masking:**
 
-$$A_{ij} = \begin{cases}
-\frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j'≤i}\exp(q_i \cdot k_{j'} / \sqrt{d_k})} & \text{if } j \leq i \\
-0 & \text{if } j > i
-\end{cases}$$
+```
+Aᵢⱼ = { softmax(qᵢ·kⱼ/√dₖ)  if j ≤ i
+      { 0                    if j > i
+```
 
 **Attention Entropy:**
 
-$$H(A_i) = -\sum_{j=1}^{T} A_{ij} \log A_{ij}$$
+```
+H(Aᵢ) = -Σ Aᵢⱼ log(Aᵢⱼ)
+```
 
-- **High entropy** ($H \to \log T$): Uniform attention (uncertain)
-- **Low entropy** ($H \to 0$): Focused attention (confident)
+- **High entropy** (H → log T): Uniform attention (uncertain)
+- **Low entropy** (H → 0): Focused attention (confident)
 
 ---
 
@@ -156,22 +177,32 @@ $$H(A_i) = -\sum_{j=1}^{T} A_{ij} \log A_{ij}$$
 
 **Classical SGD (Baseline):**
 
-$$\theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}(\theta_t)$$
+```
+θₜ₊₁ = θₜ - η·∇θ L(θₜ)
+```
 
 **TSU Update Rules:**
 
 **Step 1 - Sample:**
-$$\theta^{(s)} \sim q(\theta) = \mathcal{N}(\mu, \text{diag}(\sigma^2))$$
+```
+θ⁽ˢ⁾ ~ q(θ) = N(μ, diag(σ²))
+```
 
 **Step 2 - Compute Free Energy:**
-$$F(\mu, \sigma) = \mathbb{E}_{\theta \sim q}[\mathcal{L}(\theta)] - T \cdot S(q) + \lambda \cdot D_{KL}[q || p_0]$$
+```
+F(μ,σ) = 𝔼[L(θ)] - T·S(q) + λ·D_KL[q||p₀]
+```
 
 **Step 3 - Update Distribution:**
-$$\mu_{t+1} = \mu_t - \eta_\mu \nabla_\mu F$$
-$$\sigma_{t+1} = \sigma_t - \eta_\sigma \nabla_\sigma F$$
+```
+μₜ₊₁ = μₜ - ημ·∇μ F
+σₜ₊₁ = σₜ - ησ·∇σ F
+```
 
 **Entropy Gradient:**
-$$\nabla_{\sigma_i} S = \frac{1}{\sigma_i}$$
+```
+∇σᵢ S = 1/σᵢ
+```
 
 This creates an **"entropic force"** pushing towards exploration.
 
@@ -179,12 +210,14 @@ This creates an **"entropic force"** pushing towards exploration.
 
 ### **6. Temperature Annealing**
 
-$$T(t) = T_0 \cdot \left(\frac{T_{final}}{T_0}\right)^{t/T_{max}}$$
+```
+T(t) = T₀·(T_final/T₀)^(t/T_max)
+```
 
 **Strategy:** Start hot (explore) → End cold (exploit)
 
-**Phase Transition:** At critical temperature $T_c$, system transitions from:
-- **Disordered phase** (high $S$, exploration) → **Ordered phase** (low $S$, exploitation)
+**Phase Transition:** At critical temperature `Tᶜ`, system transitions from:
+- **Disordered phase** (high S, exploration) → **Ordered phase** (low S, exploitation)
 
 ---
 
@@ -192,29 +225,35 @@ $$T(t) = T_0 \cdot \left(\frac{T_{final}}{T_0}\right)^{t/T_{max}}$$
 
 From Extropic's framework:
 
-$$P_\theta(x) \propto \exp\left(-\frac{E(x)}{k_B T}\right)$$
+```
+Pθ(x) ∝ exp(-E(x)/kᵦT)
+```
 
 **Denoising Objective:**
 
-$$\mathcal{L}_{DTM}(\theta) = \mathbb{E}_{x_0 \sim q(x_0)} \mathbb{E}_{t,\epsilon} \left[\|\epsilon - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon, t)\|^2\right]$$
+```
+L_DTM(θ) = 𝔼[‖ε - εθ(√ᾱₜ·x₀ + √(1-ᾱₜ)·ε, t)‖²]
+```
 
 where:
-- $\epsilon \sim \mathcal{N}(0, I)$: Noise
-- $\alpha_t$: Noise schedule
-- $\epsilon_\theta$: Neural denoiser
+- `ε ~ N(0, I)`: Noise
+- `αₜ`: Noise schedule
+- `εθ`: Neural denoiser
 
 ---
 
 ### **8. Adaptive Correlation Penalty (ACP)**
 
-$$\mathcal{L}_{ACP} = \mathcal{L}(\theta) + \lambda_t \cdot \text{Corr}(\nabla_\theta \mathcal{L}, \xi_t)$$
+```
+L_ACP = L(θ) + λₜ·Corr(∇θL, ξₜ)
+```
 
 **Adaptive Schedule:**
 
-$$\lambda_t = \begin{cases}
-\lambda_{max} & \text{if } \|\nabla_\theta \mathcal{L}\| < \tau \\
-\lambda_{max} \cdot \exp(-\alpha \cdot (\|\nabla_\theta \mathcal{L}\| - \tau)) & \text{otherwise}
-\end{cases}$$
+```
+λₜ = { λ_max                                      if ‖∇θL‖ < τ
+     { λ_max·exp(-α·(‖∇θL‖ - τ))                otherwise
+```
 
 ---
 
@@ -222,17 +261,21 @@ $$\lambda_t = \begin{cases}
 
 **Total Energy:**
 
-$$E_{total} = \int_{0}^{T_{train}} P(t) \, dt \approx \sum_{i=1}^{N_{steps}} P_i \cdot \Delta t_i$$
+```
+E_total = ∫₀^T_train P(t) dt ≈ Σᵢ₌₁^N_steps Pᵢ·Δtᵢ
+```
 
 where:
-- $P(t)$: Instantaneous power (Watts) measured via NVML
-- $T_{train}$: Total training time
+- `P(t)`: Instantaneous power (Watts) measured via NVML
+- `T_train`: Total training time
 
 **Energy Efficiency Metric:**
 
-$$\eta = \frac{\text{Loss Reduction}}{\text{Energy Consumed}} = \frac{\mathcal{L}_{initial} - \mathcal{L}_{final}}{E_{total}}$$
+```
+η = (Loss Reduction)/(Energy Consumed) = (L_initial - L_final)/E_total
+```
 
-Higher $\eta$ = more efficient training.
+Higher `η` = more efficient training.
 
 ---
 
@@ -240,23 +283,29 @@ Higher $\eta$ = more efficient training.
 
 **Ansatz State:**
 
-$$|\psi(\vec{\gamma}, \vec{\beta})\rangle = \prod_{p=1}^{P} U_M(H_M, \beta_p) U_P(H_C, \gamma_p) |+\rangle^{\otimes n}$$
+```
+|ψ(γ⃗, β⃗)⟩ = ∏ₚ₌₁^P U_M(H_M, βₚ) U_P(H_C, γₚ) |+⟩⊗ⁿ
+```
 
 **Unitaries:**
-- $U_P(H_C, \gamma) = e^{-i\gamma H_C}$: Problem unitary
-- $U_M(H_M, \beta) = e^{-i\beta H_M}$: Mixer unitary
+- `U_P(H_C, γ) = exp(-iγH_C)`: Problem unitary
+- `U_M(H_M, β) = exp(-iβH_M)`: Mixer unitary
 
 **Cost Hamiltonian (Attention Weights):**
 
-$$H_C = \sum_{i=1}^{n} h_i Z_i + \sum_{i<j} J_{ij} Z_i Z_j$$
+```
+H_C = Σᵢ₌₁ⁿ hᵢZᵢ + Σᵢ<ⱼ JᵢⱼZᵢZⱼ
+```
 
 **Optimization:**
 
-$$(\gamma^*, \beta^*) = \arg\min_{\gamma,\beta} \langle \psi(\gamma, \beta) | H_C | \psi(\gamma, \beta) \rangle$$
+```
+(γ*, β*) = argmin_{γ,β} ⟨ψ(γ,β)|H_C|ψ(γ,β)⟩
+```
 
 **Complexity:**
-- Classical: $O(2^n)$
-- QAOA: $O(\text{poly}(n) \cdot P)$
+- Classical: `O(2ⁿ)`
+- QAOA: `O(poly(n)·P)`
 
 ---
 
@@ -264,15 +313,21 @@ $$(\gamma^*, \beta^*) = \arg\min_{\gamma,\beta} \langle \psi(\gamma, \beta) | H_
 
 **Autoregressive Factorization:**
 
-$$P(x_{1:T}) = \prod_{t=1}^{T} P_\theta(x_t | x_{<t})$$
+```
+P(x₁:T) = ∏ₜ₌₁^T Pθ(xₜ | x₍<t₎)
+```
 
 **Cross-Entropy Loss:**
 
-$$\mathcal{L} = -\frac{1}{T}\sum_{t=1}^{T} \log P_\theta(x_t | x_{<t})$$
+```
+L = -(1/T)Σₜ₌₁^T log Pθ(xₜ | x₍<t₎)
+```
 
 **Perplexity:**
 
-$$\text{PPL} = \exp(\mathcal{L})$$
+```
+PPL = exp(L)
+```
 
 Lower perplexity = better model.
 
@@ -282,13 +337,17 @@ Lower perplexity = better model.
 
 **Entropy Evolution:**
 
-$$\frac{dS}{dt} = -\nabla_\sigma S \cdot \frac{d\sigma}{dt}$$
+```
+dS/dt = -∇σS · dσ/dt
+```
 
 **Fluctuation-Dissipation Theorem:**
 
-$$\langle (\Delta \theta)^2 \rangle = 2T \cdot D \cdot \Delta t$$
+```
+⟨(Δθ)²⟩ = 2T·D·Δt
+```
 
-where $D$ is diffusion coefficient, connecting temperature to parameter fluctuations.
+where `D` is diffusion coefficient, connecting temperature to parameter fluctuations.
 
 ---
 
@@ -358,7 +417,7 @@ model = TinyGPT(**model_config)
 
 # Train with classical SGD
 baseline_metrics = train_baseline(
-    model, train_loader, val_loader, 
+    model, train_loader, val_loader,
     epochs=5, lr=3e-4
 )
 ```
@@ -465,15 +524,15 @@ class ThermodynamicSamplingUnit(nn.Module):
         self.mean = nn.Parameter(torch.zeros(param_shape))
         self.log_var = nn.Parameter(torch.zeros(param_shape))
         self.temperature = temperature
-    
+
     def sample(self, n_samples=1):
         std = torch.exp(0.5 * self.log_var)
         eps = torch.randn(n_samples, *self.mean.shape)
         return self.mean + eps * std
-    
+
     def compute_entropy(self):
         return 0.5 * torch.sum(1.0 + self.log_var + np.log(2*np.pi))
-    
+
     def free_energy(self, loss):
         return loss - self.temperature * self.compute_entropy()
 ```
@@ -485,11 +544,11 @@ class NVMLPowerMeter:
     """Real-time GPU power measurement"""
     def __init__(self, device_idx=0):
         self.handle = pynvml.nvmlDeviceGetHandleByIndex(device_idx)
-    
+
     def sample(self):
         power_mw = pynvml.nvmlDeviceGetPowerUsage(self.handle)
         return power_mw / 1000.0  # Convert to Watts
-    
+
     def stop(self):
         # Integrate power over time to get energy (Joules)
         return {'energy_j': total_energy, 'avg_power_w': avg_power}
@@ -503,7 +562,7 @@ class TinyGPT(nn.Module):
     Minimal GPT-style language model
     ~1-2M parameters (laptop-friendly)
     """
-    def __init__(self, vocab_size, block_size=256, n_embd=384, 
+    def __init__(self, vocab_size, block_size=256, n_embd=384,
                  n_head=6, n_layer=6):
         super().__init__()
         self.transformer = nn.ModuleDict({
@@ -521,32 +580,32 @@ class TinyGPT(nn.Module):
 
 ### **Primary Literature**
 
-1. **Extropic (2024)**: "An efficient probabilistic hardware architecture for diffusion-like models"  
+1. **Extropic (2024)**: "An efficient probabilistic hardware architecture for diffusion-like models"
    [arXiv:2510.23972v1](https://arxiv.org/abs/2510.23972)
 
-2. **Friston, K. (2010)**: "The free-energy principle: a unified brain theory?"  
+2. **Friston, K. (2010)**: "The free-energy principle: a unified brain theory?"
    *Nature Reviews Neuroscience*, 11(2), 127-138
 
-3. **Farhi et al. (2014)**: "A Quantum Approximate Optimization Algorithm"  
+3. **Farhi et al. (2014)**: "A Quantum Approximate Optimization Algorithm"
    [arXiv:1411.4028](https://arxiv.org/abs/1411.4028)
 
-4. **Hinton & Van Camp (1993)**: "Keeping neural networks simple by minimizing the description length"  
+4. **Hinton & Van Camp (1993)**: "Keeping neural networks simple by minimizing the description length"
    *COLT 1993*
 
 ### **Thermodynamic Computing**
 
-5. **Boyd et al. (2016)**: "Energy-Efficient Computing via Boltzmann Machines"  
+5. **Boyd et al. (2016)**: "Energy-Efficient Computing via Boltzmann Machines"
    *IEEE Transactions on Neural Networks*
 
-6. **Aaronson (2020)**: "Physical Limits of Computation"  
+6. **Aaronson (2020)**: "Physical Limits of Computation"
    *Nature Physics*
 
 ### **Energy-Efficient ML**
 
-7. **Strubell et al. (2019)**: "Energy and Policy Considerations for Deep Learning in NLP"  
+7. **Strubell et al. (2019)**: "Energy and Policy Considerations for Deep Learning in NLP"
    *ACL 2019*
 
-8. **Patterson et al. (2021)**: "Carbon Emissions and Large Neural Network Training"  
+8. **Patterson et al. (2021)**: "Carbon Emissions and Large Neural Network Training"
    [arXiv:2104.10350](https://arxiv.org/abs/2104.10350)
 
 ---
